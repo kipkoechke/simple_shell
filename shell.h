@@ -10,4 +10,8 @@
 
 /*----------Funtion Prototypes for atoi.c-----*/
 int interactive_mode(info_t *info);
+int is_delimiter(char c, char *delimiter);
+int is_alphabet(int c);
+int my_atoi(char *str);
+
 #endif
