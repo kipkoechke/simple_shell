@@ -46,3 +46,33 @@ char *_getenv(info_t *info, const char *name)
 	/* Return NULL if the environment variable is not found */
 	return (NULL);
 }
+/**
+ * _mysetenv - Initialize a new environment variable,
+ *             or modify an existing one.
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ *
+ * Description: This function initializes a new environment variable or
+ *              modifies an existing one with the provided name and value.
+ *              The function expects two arguments: the variable name and
+ *              its value. If the variable name already exists, its value
+ *              will be updated.
+ *
+ * Return: Always 0.
+ */
+int _mysetenv(info_t *info)
+{
+	/* Check if the number of arguments is correct */
+	if (info->argc != 3)
+	{
+		_eputs("Incorrect number of arguments\n");
+		return (1);
+	}
+
+	/** Call the _setenv function to initialize
+	 * or modify the environment variable */
+	if (_setenv(info, info->argv[1], info->argv[2]))
+		return (0);
+
+	return (1);
+}
