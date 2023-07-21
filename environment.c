@@ -76,3 +76,33 @@ int _mysetenv(info_t *info)
 
 	return (1);
 }
+/**
+ * my_unsetenv - Remove an environment variable.
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ *
+ * Description: This function removes one or more environment variables.
+ *              The function expects at least one argument, which is the
+ *              name of the environment variable(s) to be removed.
+ *              If no arguments are provided, an error message is displayed.
+ *
+ * Return: Always 0.
+ */
+int my_unsetenv(info_t *info)
+{
+	int i;
+
+	/* Check if the number of arguments is correct */
+	if (info->argc == 1)
+	{
+		_inputs("Too few arguments.\n");
+		return (1);
+	}
+
+	/* Loop through each argument and remove the corresponding environment variable */
+	for (i = 1; i <= info->argc; i++)
+		_unsetenv(info, info->argv[i]);
+
+	return (0);
+}
+
