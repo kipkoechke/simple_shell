@@ -46,6 +46,7 @@ char *_getenv(info_t *info, const char *name)
 	/* Return NULL if the environment variable is not found */
 	return (NULL);
 }
+
 /**
  * _mysetenv - Initialize a new environment variable,
  *             or modify an existing one.
@@ -60,12 +61,12 @@ char *_getenv(info_t *info, const char *name)
  *
  * Return: Always 0.
  */
-int _mysetenv(info_t *info)
+int my_setenv(info_t *info)
 {
 	/* Check if the number of arguments is correct */
 	if (info->argc != 3)
 	{
-		_eputs("Incorrect number of arguments\n");
+		_inputs("Incorrect number of arguments\n");
 		return (1);
 	}
 
@@ -76,6 +77,7 @@ int _mysetenv(info_t *info)
 
 	return (1);
 }
+
 /**
  * my_unsetenv - Remove an environment variable.
  * @info: Structure containing potential arguments. Used to maintain
@@ -102,6 +104,33 @@ int my_unsetenv(info_t *info)
 	/* Loop through each argument and remove the corresponding environment variable */
 	for (i = 1; i <= info->argc; i++)
 		_unsetenv(info, info->argv[i]);
+
+	return (0);
+}
+
+/**
+ * display_env_list - Populates an environment linked list
+ * 						with environment variables.
+ * @info: Structure containing potential arguments.
+ * 			Used to maintain constant function prototype.
+ *
+ * Return: Always 0.
+ */
+int display_env_list(info_t *info)
+{
+	list_t *node = NULL;
+	size_t i;
+
+	/* Iterate through the environment variables */
+	for (i = 0; environ[i]; i++)
+	{
+		/* Add each environment variable to the end of the linked list */
+		add_node_end(&node, environ[i], 0);
+	}
+
+	/** Update the 'env' member of the info structure to point to
+	 *	the populated linked list */
+	info->env = node;
 
 	return (0);
 }
