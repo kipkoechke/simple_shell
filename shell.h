@@ -48,7 +48,7 @@ char *_getenv(info_t *, const char *);
 int my_env(info_t *);
 int my_setenv(info_t *);
 int my_unsetenv(info_t *);
-int display_env_list(info_t *);
+int display_env_list(info_t *info);
 
 /*--------Funtion Prototypes for errors.c--------*/
 void _inputs(char *);
