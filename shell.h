@@ -1,12 +1,11 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-/*-------------Libraries------------*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <limits.h>
@@ -23,12 +22,13 @@
 #define WRITE_BUF_SIZE 1024
 #define BUF_FLUSH -1
 
-/*----------command chaining-------------- */
+/* Use to do command chaining */
 #define CMD_NORM 0
 #define CMD_OR 1
 #define CMD_AND 2
 #define CMD_CHAIN 3
-/*-----------Use for command chaining--------*/
+
+/* 1 if using system getline() */
 #define USE_GETLINE 0
 #define USE_STRTOK 0
 
@@ -37,11 +37,89 @@
 
 extern char **environ;
 
-/*----------Funtion Prototypes for atoi.c-----*/
-int interactive_mode(info_t *info);
-int is_delimiter(char c, char *delimiter);
-int is_alphabet(int c);
-int my_atoi(char *str);
+/**
+ * Custom data structure for a singly linked list.
+ * @num: Number field.
+ * @str: String field.
+ * @next: Points to the next node in the list.
+ */
+typedef struct liststr
+{
+	int num;
+	char *str;
+	struct liststr *next;
+} list_t;
+
+/**
+ * struct passinfo - Custom data structure for holding pseudo-arguments
+ * 						to be passed into a function.
+ * @arg: String generated from getline containing arguments.
+ * @argv: Array of strings generated from the argument string.
+ * @path: String path for the current command.
+ * @argc: Number of arguments.
+ * @line_count: Count of encountered errors.
+ * @err_num: Error code used for exit operations.
+ * @linecount_flag: Flag to indicate whether counting the current input line.
+ * @fname: Name of the current program file.
+ * @env: Linked list representing the local copy of the environment variables.
+ * @environ: Custom modified copy of the environment variables from the LL env.
+ * @history: Linked list node representing the history.
+ * @alias: Linked list node representing aliases.
+ * @env_changed: Flag indicating whether the environment variables were changed.
+ * @status: Status of the last executed command.
+ * @cmd_buf: Address of the pointer to the command buffer used for chaining.
+ * @cmd_buf_type: Type of command chaining (e.g., ||, &&, ;).
+ * @readfd: File descriptor from which to read line input.
+ * @histcount: Count of history line numbers.
+ */
+typedef struct passinfo
+{
+	char *arg;
+	char **argv;
+	char *path;
+	int argc;
+	unsigned int line_count;
+	int err_num;
+	int linecount_flag;
+	char *fname;
+	list_t *env;
+	list_t *history;
+	list_t *alias;
+	char **environ;
+	int env_changed;
+	int status;
+
+	char **cmd_buf;
+	int cmd_buf_type;
+	int readfd;
+	int histcount;
+} info_t;
+
+#define INFO_INIT                                                               \
+	{                                                                           \
+		NULL, NULL, NULL, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0, 0, NULL, \
+			0, 0, 0                                                             \
+	}
+
+/**
+ *struct builtin - Custom data structure for built-in commands
+ *					and their associated functions.
+ *@type: The built-in command flag (string representation).
+ *@func: Pointer to the function that implements the built-in command.
+ */
+typedef struct builtin
+{
+	char *type;
+	int (*func)(info_t *);
+} builtin_table;
+
+/*--------Function Prototypes--------*/
+
+/*--------Funtion Prototypes for atoi.c--------*/
+int interactive_mode(info_t *);
+int is_delimiter(char, char *);
+int is_alphabet(int);
+int my_atoi(char *);
 
 /*--------Funtion Prototypes for builtin.c--------*/
 int my_exit(info_t *);
@@ -60,7 +138,7 @@ char *_getenv(info_t *, const char *);
 int my_env(info_t *);
 int my_setenv(info_t *);
 int my_unsetenv(info_t *);
-int display_env_list(info_t *info);
+int display_env_list(info_t *);
 
 /*--------Funtion Prototypes for errors.c--------*/
 void _inputs(char *);
@@ -148,8 +226,8 @@ void _puts(char *);
 int _putchar(char);
 
 /*--------Funtion Prototypes for tokenizer.c--------*/
-char **strtow(char *, char *);
-char **strtow2(char *, char);
+char **split_string(char *, char *);
+char **split_string2(char *, char);
 
 /*--------Funtion Prototypes for vars.c--------*/
 int is_chain(info_t *, char *, size_t *);
@@ -157,77 +235,5 @@ void check_chain(info_t *, char *, size_t *, size_t, size_t);
 int replace_alias(info_t *);
 int replace_vars(info_t *);
 int replace_string(char **, char *);
-
-/**
- * struct liststr - the singly linked list.
- * @num: number field.
- * @str: string.
- * @next: points to the next node.
- */
-typedef struct liststr
-{
-	int num;
-	char *str;
-	struct liststr *next;
-} list_t;
-
-/**
- *struct passinfo - contains pseudo-arguements to pass into a function.
- *@arg: string generated from getline containing arguements.
- *@argv: array of strings generated from arg.
- *@path: string path for the current command.
- *@argc: argument count.
- *@line_count: error count.
- *@err_num: error code for exit..
- *@linecount_flag: if on count this line of input.
- *@fname: program filename.
- *@env: linked list local copy of environ.
- *@environ: custom modified copy of environ.
- *@history: the history node.
- *@alias: alias node.
- *@env_changed:if environ was changed.
- *@status: status of the last executed command.
- *@cmd_buf: address of pointer to cmd_buf, on if chaining.
- *@cmd_buf_type: ||, &&, ;.
- *@readfd: file descriptor from which to read line input.
- *@histcount: history line number count.
- */
-typedef struct passinfo
-{
-	char *arg;
-	char **argv;
-	char *path;
-	int argc;
-	unsigned int line_count;
-	int err_num;
-	int linecount_flag;
-	char *fname;
-	list_t *env;
-	list_t *history;
-	list_t *alias;
-	char **environ;
-	int env_changed;
-	int status;
-
-	char **cmd_buf;
-	int cmd_buf_type;
-	int readfd;
-	int histcount;
-} info_t;
-
-#define INFO_INIT \
-{NULL, NULL, NULL, 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL, 0, 0, NULL, \
-	0, 0, 0}
-
-/**
- *struct builtin - for builtin string and associated function.
- *@type: the builtin command flag.
- *@func: function
- */
-typedef struct builtin
-{
-	char *type;
-	int (*func)(info_t *);
-} builtin_table;
 
 #endif
